@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="author" content="Vosmer">
+		<meta name="description" content="news"/>
+		<meta name="keywords" content="news"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>News</title>
+		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" href="css/styles.css" type="text/css" media="screen" />
+	</head>
+	<body>
+		<!--# Site Header: Start -->
+		<header>
+			<!--# Navigation: Start -->
+			<nav id="category_list">
+				<ul>
+					<li>Your menu</li>
+					<NewsCategoriesList data={this.props.data} />
+				</ul>
+				
+			</nav>
+			<!--# Navigation: End -->
+		</header>
+		<!--# Site Header: End -->
+
+		<!--# Main: Start -->
+		<section id="news_list">
+			<!--# Article #1: Start -->
+			<article>
+				<header>
+					<h2>Article #1 title</h2>
+					<p>Posted on <time datetime="2010-01-01T10:10:10+02:00">January 1st 2010</time></p>
+				</header>
+				<p>Your article goes here.</p>
+			</article>
+			<!--# Article #1: End -->
+
+			<!--# Article #2: Start -->
+			<article>
+				<header>
+					<h2>Article #2 title</h2>
+					<p>Posted on <time datetime="2010-01-01T10:10:10+02:00">January 1st 2010</time></p>
+				</header>
+				<p>Your article goes here.</p>
+			</article>
+			<!--# Article #2: End -->
+
+		</section>
+		<!--# Main: End -->
+
+		<!--# Sidebar: Start -->
+		<aside>
+			<h2>About section</h2>
+			<p>Your text goes here.</p>
+		</aside>
+		<!--# Sidebar: End -->
+		
+		<!--# Footer: Start -->
+		<footer>
+			<p>Copyright 2010 Your name</p>
+		</footer>
+		<!--# Footer: End -->	
+		<script src="src/js/all.concatenated.js"></script>
+		<!--<script src="js/all.min.js"></script>-->
+	</body>
+</html>
