@@ -43,6 +43,40 @@ body,html{
 		text-decoration:underline;
 	}
 }
+.pagination{
+	margin-left: 8px;
+	margin-top: 8px;
+	
+	.paginationItem{
+		display: inline-block;
+		position: relative;
+		background: #dddddd;
+		border-left: 3px solid #712067;
+		font-style: italic;
+		line-height: 40px;
+		vertical-align:top;
+		text-align:center;
+		height:40px;
+		width:40px;
+		color: #333333;
+		font-family: Helvetica,Arial,sans-serif;
+		padding:0px;
+		margin:0 4px;
+		font-size: 12px;
+		cursor: pointer;
+		font-weight: bold;
+		
+		&:hover{
+			background:#712067;
+			color: #ffffff;
+			border-color:#191919;
+		}
+		&.prev{
+			margin-left: 0;
+		}
+	}
+}
+
 .categoryBox {
 	.categoriesList{
 		display:block;
@@ -57,7 +91,7 @@ body,html{
 			display:inline-block;
 			
 			.categoryName{
-				background: none repeat scroll 0 0 #191919;
+				background: #191919;
 				color: #fff;
 				display: block;
 				float: left;
@@ -70,8 +104,8 @@ body,html{
 				cursor:pointer;
 				
 				&:hover{
-					background: none repeat scroll 0 0 #712067;
-					color: #fff;
+					background:#712067;
+					color: #ffffff;
 				}
 			}
 		}

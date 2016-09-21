@@ -75,6 +75,7 @@ var vanilla={};
  * @param requestUrl 		String		url the data to be requested from
  * @param cb 				Function	callback function fired on successfull request
  * @param errcb				Function	callback function fired on error (the error text is passed to this calllback)
+ * @returns nothing
  */
 vanilla.getJson=function(env,requestUrl,cb,errcb){
 	
@@ -88,6 +89,7 @@ vanilla.getJson=function(env,requestUrl,cb,errcb){
 			var data = JSON.parse(request.responseText);
 			cb(env,data);
 		} else {
+			//TODO check if error callback defined otherwise console.error
 			errcb("We reached our target server, but it returned an error");
 		}
 	};
@@ -153,12 +155,23 @@ var FullNew = React.createClass({
 			th.toggle(fullNewGlobalObj.setStateHidden);
 		};
 	},
+	//prepare html data
+	createMarkup: function() { return {__html: this.state.dataNews.fullDescription}; }, //{this.state.dataNews.fullDescription}
 	render: function() {
+		//TODO show short variant before load
 		return (
 			<div className={this.state.hide ? 'fullNew hidden' : 'fullNew'}  >
-				<h1>{this.state.dataNews.title}</h1>
-				<div>{this.state.dataNews.fullDescription}</div>
-				<div>{this.state.dataNews.date}</div>
+				<div className="theNewItem">
+					<div className="newTitle">
+						{this.state.dataNews.title}
+					</div>
+					<div className="newDate">
+						{this.state.dataNews.date}
+					</div>
+					<div className="newDesc" dangerouslySetInnerHTML={this.createMarkup()}>
+					
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -168,7 +181,10 @@ ReactDOM.render(
 	document.getElementById('full_new')
 );
 /* full new component END */
+
 /* news list component START */
+
+/* new-post partial component */
 var TheNew = React.createClass({
 	handleReadWholeNew: function(e) {
 		console.log("handleReadWholeNew");
@@ -203,6 +219,7 @@ var TheNew = React.createClass({
 		);
 	}
 });
+/* list of news partial component */
 var NewsList = React.createClass({
 	render: function() {
 		var newsNodes = this.props.data.map(function(theNew) {
@@ -219,17 +236,62 @@ var NewsList = React.createClass({
 		);
 	}
 });
+/* pagination START */
+var PaginationItem = React.createClass({
+	handlePageChoose: function(e) {
+		if(this.props.page === parseInt(this.props.page, 10)) {
+			newsBoxGlobalObj.page = (this.props.page - 1);
+		}
+		if(this.props.page === "<" && newsBoxGlobalObj.page > 0){
+			newsBoxGlobalObj.page--;
+		}
+		if(this.props.page === ">" && newsBoxGlobalObj.page < (newsBoxGlobalObj.totalPages - 1)){
+			newsBoxGlobalObj.page++;
+		}
+		//fire callback for newsBox component update
+		newsBoxGlobalObj.cb(e);
+	},
+	render: function() {
+		return (
+			<span className={(this.props.additionalCssClass)? "paginationItem "+this.props.additionalCssClass:"paginationItem"} onClick={this.handlePageChoose}>
+				{this.props.page}
+			</span>
+		);
+	}
+});
+var NewsListPagination = React.createClass({
+	render: function() {
+		var totalPages = newsBoxGlobalObj.totalPages;
+		var items = [];
+		for (var i = 1; i <= totalPages; i++) {
+			items.push(
+				<PaginationItem page={i} />
+			);
+		}
+		return (
+			<div className="pagination">
+				<PaginationItem additionalCssClass={"prev"} page={"<"} />
+					{items}
+				<PaginationItem additionalCssClass={"next"} page={">"} />
+			</div>
+		);
+	}
+});
+/* pagination END */
 //global object for components communication
 var newsBoxGlobalObj = {
 	"category": "", //current category to load
-	"setStateHidden": false
+	"setStateHidden": true,
+	"page": "",
+	"totalPages": 10
 };
+/* box of news partial component */
 var NewsBox = React.createClass({
 	//get JSON from server
 	loadNewsFromServer: function(catId,page) {
 		if(typeof(catId)=="undefined" || catId===""){return false;}
 		//specified page
-		var pageToUrl = (typeof(page) == "undefined")? "": ("?page="+page);
+		var pageToUrl = (typeof(page) == "undefined" || page=="")? "": ("?page="+page);
 		//request
 		vanilla.getJson(
 			this,
@@ -260,7 +322,7 @@ var NewsBox = React.createClass({
 	getInitialState: function() {
 		return {
 			dataNews: [],
-			hide: false
+			hide: true
 		};
 	},
 	//once component loaded
@@ -273,7 +335,7 @@ var NewsBox = React.createClass({
 		var th=this;
 		newsBoxGlobalObj.cb = function(data) {
 			// `this` refers to our react component
-			th.loadNewsFromServer(newsBoxGlobalObj.category);
+			th.loadNewsFromServer(newsBoxGlobalObj.category,newsBoxGlobalObj.page);
 		};
 		//add showHide function to global object
 		newsBoxGlobalObj.showHide = function(data) {
@@ -285,6 +347,7 @@ var NewsBox = React.createClass({
 			<div className={this.state.hide ? 'newsBox hidden' : 'newsBox'} >
 				<h1>Новости</h1>
 				<NewsList data={this.state.dataNews} />
+				<NewsListPagination />
 			</div>
 		);
 	}
@@ -306,6 +369,11 @@ var Category = React.createClass({
 		newsBoxGlobalObj.category=this.props.category.id;
 		//fire callback for newsBox component update
 		newsBoxGlobalObj.cb(e);
+		
+		//set hidden state for NewsBox component
+		newsBoxGlobalObj.setStateHidden=false;
+		//fire showHide for NewsBox component
+		newsBoxGlobalObj.showHide(e);
 	},
 	render: function() {
 		return (
