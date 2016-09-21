@@ -129,16 +129,106 @@ vanilla.getJson=function(env,requestUrl,cb,errcb){
 
 	request.send();
 }
-/* news list component START */
-var TheNew = React.createClass({displayName: "TheNew",
+/* full new component START */
+//global object for components communication
+var fullNewGlobalObj = {
+	"neueId": "", //current new to load
+	"setStateHidden": false
+};
+var FullNew = React.createClass({displayName: "FullNew",
+	loadNewsFromServer: function(catId) {
+		if(typeof(catId)=="undefined" || catId===""){return false;}
+		vanilla.getJson(
+			this,
+			'http://testtask.sebbia.com/v1/news/details?id='+catId,
+			function(env,responseData){
+				env.setState({
+					dataNews: (responseData.news),
+					hide: false
+				});
+			},
+			function(errorMessage){
+				console.log("Error getting JSON data from server: ",errorMessage);
+			}
+		);
+	},
+	toggle: function(setState) {
+		if(typeof(setState)=="undefined" || setState===""){
+			this.setState({
+				hide: !this.state.hide
+			});
+		} else {
+			this.setState({
+				hide: setState
+			});
+		}
+	},
+	getInitialState: function() {
+		return {
+			dataNews: [],
+			hide: false
+		};
+	},
+	componentDidMount: function() {
+		this.loadNewsFromServer("");
+	},
+	//this is magic
+	componentWillMount: function() {
+		var th=this;
+		fullNewGlobalObj.cb = function(data) {
+			// `this` refers to our react component
+			th.loadNewsFromServer(fullNewGlobalObj.neueId);
+		};
+		//add showHide function to global object
+		fullNewGlobalObj.showHide = function(data) {
+			th.toggle(fullNewGlobalObj.setStateHidden);
+		};
+	},
 	render: function() {
 		return (
-			React.createElement("li", {className: "theNewItem"}, 
-				React.createElement("span", {className: "newTitle"}, 
+			React.createElement("div", {className: this.state.hide ? 'fullNew hidden' : 'fullNew'}, 
+				React.createElement("h1", null, this.state.dataNews.title), 
+				React.createElement("div", null, this.state.dataNews.fullDescription), 
+				React.createElement("div", null, this.state.dataNews.date)
+			)
+		);
+	}
+});
+ReactDOM.render(
+	React.createElement(FullNew, {url: ""}),
+	document.getElementById('full_new')
+);
+/* full new component END */
+/* news list component START */
+var TheNew = React.createClass({displayName: "TheNew",
+	handleReadWholeNew: function(e) {
+		console.log("handleReadWholeNew");
+		//TODO set status read
+		
+		
+		//set hidden state for NewsBox component
+		newsBoxGlobalObj.setStateHidden=true;
+		//fire showHide for NewsBox component
+		newsBoxGlobalObj.showHide(e);
+		//set hidden state for CategoryBox component
+		categoryBoxGlobalObj.setStateHidden=true;
+		//fire showHide for CategoryBox component
+		categoryBoxGlobalObj.showHide(e);
+		//show view with full new
+		fullNewGlobalObj.neueId=this.props.data.id;
+		fullNewGlobalObj.cb(e);
+	},
+	render: function() {
+		return (
+			React.createElement("div", {className: "theNewItem"}, 
+				React.createElement("div", {className: "newTitle"}, 
 					this.props.title
 				), 
-				React.createElement("span", {className: "newDate"}, 
+				React.createElement("div", {className: "newDate"}, 
 					this.props.data.date
+				), 
+				React.createElement("div", {className: "newDesc"}, 
+					this.props.data.shortDescription, " ", React.createElement("span", {className: "linkOpenFullNew", onClick: this.handleReadWholeNew}, "Читать полностью")
 				)
 			)
 		);
@@ -154,7 +244,7 @@ var NewsList = React.createClass({displayName: "NewsList",
 			);
 		});
 		return (
-			React.createElement("ul", {className: "newsList"}, 
+			React.createElement("div", {className: "newsList"}, 
 				newsNodes
 			)
 		);
@@ -162,39 +252,68 @@ var NewsList = React.createClass({displayName: "NewsList",
 });
 //global object for components communication
 var newsBoxGlobalObj = {
-	"category": "" //current category to load
+	"category": "", //current category to load
+	"setStateHidden": false
 };
 var NewsBox = React.createClass({displayName: "NewsBox",
-	loadNewsFromServer: function(catId) {
+	//get JSON from server
+	loadNewsFromServer: function(catId,page) {
 		if(typeof(catId)=="undefined" || catId===""){return false;}
+		//specified page
+		var pageToUrl = (typeof(page) == "undefined")? "": ("?page="+page);
+		//request
 		vanilla.getJson(
 			this,
-			'http://testtask.sebbia.com/v1/news/categories/'+catId+'/news',
+			'http://testtask.sebbia.com/v1/news/categories/'+catId+'/news'+pageToUrl,
 			function(env,responseData){
-				env.setState({dataNews: (responseData.list)});
+				env.setState({
+					dataNews: (responseData.list),
+					//hide: env.state.hide
+				});
 			},
 			function(errorMessage){
 				console.log("Error getting JSON data from server: ",errorMessage);
 			}
 		);
 	},
-	getInitialState: function() {
-		return {dataNews: []};
+	//show/hide component
+	toggle: function(setState) {
+		if(typeof(setState)=="undefined" || setState===""){
+			this.setState({
+				hide: !this.state.hide
+			});
+		} else {
+			this.setState({
+				hide: setState
+			});
+		}
 	},
+	getInitialState: function() {
+		return {
+			dataNews: [],
+			hide: false
+		};
+	},
+	//once component loaded
 	componentDidMount: function() {
 		this.loadNewsFromServer("");
 		//setInterval(this.loadCategorysFromServer, this.props.pollInterval); //in case you need to reload it automatically from server
 	},
 	//this is magic react js creators dont want you to know
 	componentWillMount: function() {
-		newsBoxGlobalObj.cb = (data) => {
+		var th=this;
+		newsBoxGlobalObj.cb = function(data) {
 			// `this` refers to our react component
-			this.loadNewsFromServer(newsBoxGlobalObj.category);
+			th.loadNewsFromServer(newsBoxGlobalObj.category);
+		};
+		//add showHide function to global object
+		newsBoxGlobalObj.showHide = function(data) {
+			th.toggle(newsBoxGlobalObj.setStateHidden);
 		};
 	},
 	render: function() {
 		return (
-			React.createElement("div", {className: "newsBox"}, 
+			React.createElement("div", {className: this.state.hide ? 'newsBox hidden' : 'newsBox'}, 
 				React.createElement("h1", null, "Новости"), 
 				React.createElement(NewsList, {data: this.state.dataNews})
 			)
@@ -210,6 +329,8 @@ ReactDOM.render(
 /* category list module START */
 
 /* category partial component */
+//global object for components communication
+
 var Category = React.createClass({displayName: "Category",
 	handleCategoryChoose: function(e) {
 		//set category id in global object for newsBox component
@@ -244,7 +365,9 @@ var CategoryList = React.createClass({displayName: "CategoryList",
 	}
 });
 
-
+var categoryBoxGlobalObj = {
+	"setStateHidden": false
+};
 var CategoryBox = React.createClass({displayName: "CategoryBox",
 	loadCategorysFromServer: function() {
 		vanilla.getJson(
@@ -258,6 +381,17 @@ var CategoryBox = React.createClass({displayName: "CategoryBox",
 			}
 		);
 	},
+	toggle: function(setState) {
+		if(typeof(setState)=="undefined" || setState===""){
+			this.setState({
+				hide: !this.state.hide
+			});
+		} else {
+			this.setState({
+				hide: setState
+			});
+		}
+	},
 	getInitialState: function() {
 		return {data: []};
 	},
@@ -265,10 +399,17 @@ var CategoryBox = React.createClass({displayName: "CategoryBox",
 		this.loadCategorysFromServer();
 		//setInterval(this.loadCategorysFromServer, this.props.pollInterval);
 	},
+	//this is magic 
+	componentWillMount: function() {
+		var th=this;
+		//add showHide function to global object
+		categoryBoxGlobalObj.showHide = function(data) {
+			th.toggle(categoryBoxGlobalObj.setStateHidden);
+		};
+	},
 	render: function() {
 		return (
-			React.createElement("div", {className: "categoryBox"}, 
-				React.createElement("h1", null, "Новости по категориям"), 
+			React.createElement("div", {className: this.state.hide ? 'categoryBox hidden' : 'categoryBox'}, 
 				React.createElement(CategoryList, {data: this.state.data})
 			)
 		);

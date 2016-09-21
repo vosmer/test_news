@@ -1,5 +1,78 @@
+body,
+html {
+  font-family: Helvetica, Arial, sans-serif;
+}
 .btn {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
+}
+.hidden {
+  display: none;
+}
+.theNewItem {
+  position: relative;
+  background: none repeat scroll 0 0 #dddddd;
+  border-left: 3px solid #712067;
+  font-style: italic;
+  line-height: 18px;
+  color: #333333;
+  font-family: Helvetica, Arial, sans-serif;
+  padding: 15px;
+  margin: 22px 8px 10px 8px;
+  font-size: 12px;
+}
+.theNewItem .newDate {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  height: 20px;
+  line-height: 20px;
+  display: inline-block;
+  font-size: 14px;
+  padding: 0 8px;
+  background: silver;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+.theNewItem .newTitle {
+  font-size: 28px;
+}
+.theNewItem .linkOpenFullNew {
+  color: purple;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.theNewItem .linkOpenFullNew:hover {
+  text-decoration: underline;
+}
+.categoryBox .categoriesList {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+.categoryBox .categoriesList .categoryItem {
+  list-style: none outside none;
+  margin: 0;
+  padding: 0;
+  height: 36px;
+  display: inline-block;
+}
+.categoryBox .categoriesList .categoryItem .categoryName {
+  background: none repeat scroll 0 0 #191919;
+  color: #fff;
+  display: block;
+  float: left;
+  font-size: 11px;
+  line-height: 36px;
+  margin: 0 0 0 5px;
+  padding: 0 20px;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.categoryBox .categoriesList .categoryItem .categoryName:hover {
+  background: none repeat scroll 0 0 #712067;
+  color: #fff;
 }
