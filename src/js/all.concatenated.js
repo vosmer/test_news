@@ -135,9 +135,17 @@ vanilla.getJson=function(env,requestUrl,cb,errcb){
 //global object for components communication
 var fullNewGlobalObj = {
 	"neueId": "", //current new to load
-	"setStateHidden": false
+	"setStateHidden": true
 };
 var FullNew = React.createClass({displayName: "FullNew",
+	loadNewFromObj: function(obj) {
+		var preparedObj=obj;
+		preparedObj.fullDescription = preparedObj.shortDescription;
+		this.setState({
+			dataNews: (preparedObj),
+			hide: false
+		});
+	},
 	loadNewsFromServer: function(catId) {
 		if(typeof(catId)=="undefined" || catId===""){return false;}
 		vanilla.getJson(
@@ -168,7 +176,7 @@ var FullNew = React.createClass({displayName: "FullNew",
 	getInitialState: function() {
 		return {
 			dataNews: [],
-			hide: false
+			hide: true
 		};
 	},
 	componentDidMount: function() {
@@ -177,7 +185,13 @@ var FullNew = React.createClass({displayName: "FullNew",
 	//this is magic
 	componentWillMount: function() {
 		var th=this;
-		fullNewGlobalObj.cb = function(data) {
+		//create global function that loads data from object
+		fullNewGlobalObj.loadDataFromObject = function(data) {
+			// `this` refers to our react component
+			th.loadNewFromObj(fullNewGlobalObj.neueObj);
+		};
+		//create global function that loads data from server
+		fullNewGlobalObj.loadData = function(data) {
 			// `this` refers to our react component
 			th.loadNewsFromServer(fullNewGlobalObj.neueId);
 		};
@@ -230,9 +244,19 @@ var TheNew = React.createClass({displayName: "TheNew",
 		categoryBoxGlobalObj.setStateHidden=true;
 		//fire showHide for CategoryBox component
 		categoryBoxGlobalObj.showHide(e);
+		
+		//TODO load current short new to full new view
+		fullNewGlobalObj.neueObj=this.props.data;
+		fullNewGlobalObj.loadDataFromObject(e);
+		
 		//show view with full new
+		fullNewGlobalObj.setStateHidden=false;
+		fullNewGlobalObj.showHide(e);
+		
+		//load data to full new component
 		fullNewGlobalObj.neueId=this.props.data.id;
-		fullNewGlobalObj.cb(e);
+		fullNewGlobalObj.loadData(e);
+		
 	},
 	render: function() {
 		return (
@@ -244,7 +268,11 @@ var TheNew = React.createClass({displayName: "TheNew",
 					this.props.data.date
 				), 
 				React.createElement("div", {className: "newDesc"}, 
-					this.props.data.shortDescription, " ", React.createElement("span", {className: "linkOpenFullNew", onClick: this.handleReadWholeNew}, "Читать полностью")
+					this.props.data.shortDescription, 
+					React.createElement("span", {
+						className: "linkOpenFullNew", 
+						onClick: this.handleReadWholeNew
+					}, "Читать полностью")
 				)
 			)
 		);
@@ -280,7 +308,7 @@ var PaginationItem = React.createClass({displayName: "PaginationItem",
 			newsBoxGlobalObj.page++;
 		}
 		//fire callback for newsBox component update
-		newsBoxGlobalObj.cb(e);
+		newsBoxGlobalObj.loadData(e);
 	},
 	render: function() {
 		return (
@@ -364,7 +392,7 @@ var NewsBox = React.createClass({displayName: "NewsBox",
 	//this is magic react js creators dont want you to know
 	componentWillMount: function() {
 		var th=this;
-		newsBoxGlobalObj.cb = function(data) {
+		newsBoxGlobalObj.loadData = function(data) {
 			// `this` refers to our react component
 			th.loadNewsFromServer(newsBoxGlobalObj.category,newsBoxGlobalObj.page);
 		};
@@ -399,7 +427,7 @@ var Category = React.createClass({displayName: "Category",
 		//set category id in global object for newsBox component
 		newsBoxGlobalObj.category=this.props.category.id;
 		//fire callback for newsBox component update
-		newsBoxGlobalObj.cb(e);
+		newsBoxGlobalObj.loadData(e);
 		
 		//set hidden state for NewsBox component
 		newsBoxGlobalObj.setStateHidden=false;
